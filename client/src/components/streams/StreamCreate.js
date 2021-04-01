@@ -1,20 +1,35 @@
 import React from 'react';
 import { Field, reduxForm } from 'redux-form';
+import { connect } from 'react-redux';
+import { createStream } from '../actions/index';
 
-const renderInput = ({ input, label, meta: { error } }) => (
-  <div className="field">
-    <label>{label}</label>
-    <input {...input} />
-    <div>{error}</div>
-  </div>
-);
-
-const onSubmit = (formValues) => {
-  console.log(formValues);
+const renderError = ({ error, touched }) => {
+  if (error && touched) {
+    return (
+      <div className="ui error messafe">
+        <div className="header">{error}</div>
+      </div>
+    );
+  }
 };
-const StreamCreate = (props) => {
+
+const renderInput = ({ input, label, meta }) => {
+  const className = `field ${meta.touched && meta.error ? 'error' : ''}`;
   return (
-    <form onSubmit={props.handleSubmit(onSubmit)} className="ui form">
+    <div className={className}>
+      <label>{label}</label>
+      <input {...input} />
+      {renderError(meta)}
+    </div>
+  );
+};
+
+const StreamCreate = (props) => {
+  const onSubmit = (formValues) => {
+    props.createStream(formValues);
+  };
+  return (
+    <form onSubmit={props.handleSubmit(onSubmit)} className="ui form error">
       <Field name="title" component={renderInput} label="Enter the title" />
       <Field
         name="description"
@@ -35,11 +50,12 @@ const validate = (formValues) => {
   if (!formValues.description) {
     errors.description = 'You must enter a description';
   }
-  console.log(errors);
   return errors;
 };
 
-export default reduxForm({
+const formWrapped = reduxForm({
   form: 'streamCreate',
   validate,
 })(StreamCreate);
+
+export default connect(null, { createStream })(formWrapped);
